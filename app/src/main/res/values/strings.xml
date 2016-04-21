@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (c) 2016. Osred Brockhoist <osred.brockhoist@hotmail.com>. All Rights Reserved.
+  -->
+
+<resources>
+    <string name="app_name">SimpleCalendar</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="key_pref_show_week_number">show_week_number</string>
+    <string name="key_pref_first_day_of_week">first_day_of_week</string>
+
+    <string name="week_number_text">WEEK</string>
+
+</resources>
