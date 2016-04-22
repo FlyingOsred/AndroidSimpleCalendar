@@ -9,11 +9,11 @@
     tools:context="com.flyingosred.app.android.simplecalendar.MainActivityFragment"
     tools:showIn="@layout/activity_main">
 
-    <android.support.v7.widget.RecyclerView
+    <com.flyingosred.app.android.simplecalendar.view.MonthRecyclerView
         android:id="@+id/month_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-    </android.support.v7.widget.RecyclerView>
+    </com.flyingosred.app.android.simplecalendar.view.MonthRecyclerView>
 
 </RelativeLayout>

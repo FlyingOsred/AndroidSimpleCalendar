@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Copyright (c) 2016. Osred Brockhoist <osred.brockhoist@hotmail.com>. All Rights Reserved.
+  -->
+
+<resources>
+
+    <string-array name="chinese_number">
+        <item>@string/chinese_number_one</item>
+        <item>@string/chinese_number_two</item>
+        <item>@string/chinese_number_three</item>
+        <item>@string/chinese_number_four</item>
+        <item>@string/chinese_number_five</item>
+        <item>@string/chinese_number_six</item>
+        <item>@string/chinese_number_seven</item>
+        <item>@string/chinese_number_eight</item>
+        <item>@string/chinese_number_nine</item>
+        <item>@string/chinese_number_ten</item>
+    </string-array>
+</resources>

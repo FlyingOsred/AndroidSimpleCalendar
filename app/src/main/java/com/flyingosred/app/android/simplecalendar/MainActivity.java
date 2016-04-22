@@ -21,15 +21,9 @@ import com.flyingosred.app.android.simplecalendar.provider.SimpleCalendarContrac
 
 import java.util.Calendar;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class MainActivity extends AppCompatActivity {
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
-
-    private static final int LOADER_ID = 1;
-
-    private Calendar mCalendar = Calendar.getInstance();
-
-    private MonthRecyclerViewAdapter mMonthViewAdapter = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,15 +40,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                         .setAction("Action", null).show();
             }
         });
-
-        getSupportLoaderManager().initLoader(LOADER_ID, null, this);
-
-        RecyclerView monthView = (RecyclerView) findViewById(R.id.month_recycler_view);
-        monthView.setHasFixedSize(true);
-        GridLayoutManager layoutManager = new GridLayoutManager(this, 7);
-        monthView.setLayoutManager(layoutManager);
-        mMonthViewAdapter = new MonthRecyclerViewAdapter(layoutManager);
-        monthView.setAdapter(mMonthViewAdapter);
     }
 
     @Override
@@ -77,25 +62,5 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        String[] selectionArgs = {String.valueOf(mCalendar.get(Calendar.YEAR)), String.valueOf(mCalendar.get(Calendar.MONTH))};
-        return new CursorLoader(this, SimpleCalendarContract.Month.CONTENT_URI, null, null, selectionArgs, null);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.d(LOG_TAG, "onLoadFinished");
-        if (data != null) {
-            Log.d(LOG_TAG, "onLoadFinished data count is " + data.getCount() + " column count is " + data.getColumnCount());
-        }
-        mMonthViewAdapter.swapCursor(data);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-
     }
 }

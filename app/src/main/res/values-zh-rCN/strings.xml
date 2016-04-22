@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Copyright (c) 2016. Osred Brockhoist <osred.brockhoist@hotmail.com>. All Rights Reserved.
+  -->
+
+<resources>
+    <string name="month_day_today_text">今</string>
+
+    <string name="chinese_number_one">一</string>
+    <string name="chinese_number_two">二</string>
+    <string name="chinese_number_three">三</string>
+    <string name="chinese_number_four">四</string>
+    <string name="chinese_number_five">五</string>
+    <string name="chinese_number_six">六</string>
+    <string name="chinese_number_seven">七</string>
+    <string name="chinese_number_eight">八</string>
+    <string name="chinese_number_nine">九</string>
+    <string name="chinese_number_ten">十</string>
+
+    <string name="chinese_first_month_prefix">正</string>
+    <string name="chinese_last_month_prefix">腊</string>
+    <string name="chinese_month_name">月</string>
+    <string name="chinese_day_prefix_name">初</string>
+
+
+
+
+</resources>

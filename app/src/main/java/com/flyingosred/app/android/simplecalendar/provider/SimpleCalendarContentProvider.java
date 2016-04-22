@@ -6,17 +6,16 @@ package com.flyingosred.app.android.simplecalendar.provider;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
-import android.content.SharedPreferences;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.CursorWindow;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcel;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.flyingosred.app.android.simplecalendar.R;
+import com.flyingosred.app.android.simplecalendar.database.LunarDatabase;
+import com.flyingosred.app.android.simplecalendar.database.LunarDate;
 
 import java.util.Calendar;
 
@@ -39,11 +38,7 @@ public class SimpleCalendarContentProvider extends ContentProvider {
 
     private final SolarTermProvider mSolarTermProvider = new SolarTermProvider();
 
-    private boolean mShowWeekNumber = false;
-
-    private int mFirstDayOfWeek = Calendar.SUNDAY;
-
-    private SharedPreferences mSharedPreferences;
+    private final LunarProvider mLunarProvider = new LunarProvider();
 
     public SimpleCalendarContentProvider() {
     }
@@ -73,20 +68,36 @@ public class SimpleCalendarContentProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         Log.d(LOG_TAG, "onCreate called.");
-        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         mSolarTermProvider.onCreate();
-        mShowWeekNumber = getPrefShowWeekNumber();
-        mFirstDayOfWeek = getPrefFirstDayOfWeek();
         return false;
     }
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) {
-        int year = Integer.parseInt(selectionArgs[0]);
-        int month = Integer.parseInt(selectionArgs[1]);
-        Log.d(LOG_TAG, "query called, year=" + year + ", month=" + month);
-        return generateCursorData(year, month, mFirstDayOfWeek, mShowWeekNumber);
+        int year = 0;
+        int month = 0;
+        int firstDayOfWeek = 0;
+        boolean showWeekNumber = false;
+        for (String arg : selectionArgs) {
+            if (arg.startsWith(SimpleCalendarContract.Month.SELECTION_ARG_YEAR)) {
+                year = Integer.parseInt(arg.replace(SimpleCalendarContract.Month.SELECTION_ARG_YEAR, "").trim());
+            } else if (arg.startsWith(SimpleCalendarContract.Month.SELECTION_ARG_MONTH)) {
+                month = Integer.parseInt(arg.replace(SimpleCalendarContract.Month.SELECTION_ARG_MONTH, "").trim());
+            } else if (arg.startsWith(SimpleCalendarContract.Month.SELECTION_ARG_SHOW_WEEK_NUMBER)) {
+                showWeekNumber = Integer.parseInt(arg.
+                        replace(SimpleCalendarContract.Month.SELECTION_ARG_SHOW_WEEK_NUMBER, "")
+                        .trim()) == 1 ? true : false;
+            } else if (arg.startsWith(SimpleCalendarContract.Month.SELECTION_ARG_FIRST_DAY_OF_WEEK)) {
+                firstDayOfWeek = Integer.parseInt(arg.
+                        replace(SimpleCalendarContract.Month.SELECTION_ARG_FIRST_DAY_OF_WEEK, "").trim());
+            }
+        }
+        Log.d(LOG_TAG, "query called, year=" + year + ", month=" + month + ", firstDayOfWeek=" + firstDayOfWeek + ", showWeekNumber=" + showWeekNumber);
+        if (year <= 0 || month <= 0 || !isDayOfWeekValid(firstDayOfWeek)) {
+            throw new IllegalArgumentException("Query input are wrong");
+        }
+        return generateCursorData(year, month, firstDayOfWeek, showWeekNumber);
     }
 
     @Override
@@ -96,29 +107,9 @@ public class SimpleCalendarContentProvider extends ContentProvider {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    private boolean getPrefShowWeekNumber() {
-        return mSharedPreferences.getBoolean(getContext().getString(R.string.key_pref_show_week_number), false);
-    }
-
-    private int getPrefFirstDayOfWeek() {
-        int firstDayOfWeek = 0;
-        String value = mSharedPreferences.getString(getContext().getString(R.string.key_pref_first_day_of_week), null);
-        if (value != null) {
-            firstDayOfWeek = Integer.parseInt(value);
-        }
-        return validateFirstDayOfWeek(firstDayOfWeek);
-    }
-
     private boolean isDayOfWeekValid(int dayOfWeek) {
         Calendar calendar = Calendar.getInstance();
         return (dayOfWeek >= calendar.getActualMinimum(Calendar.DAY_OF_WEEK) && dayOfWeek <= calendar.getActualMaximum(Calendar.DAY_OF_WEEK));
-    }
-
-    private int validateFirstDayOfWeek(int firstDayOfWeek) {
-        if (!isDayOfWeekValid(firstDayOfWeek)) {
-            return Calendar.getInstance().getFirstDayOfWeek();
-        }
-        return firstDayOfWeek;
     }
 
     private Cursor generateCursorData(int year, int month, int firstDayOfWeek, boolean showWeekNumber) {
@@ -131,20 +122,31 @@ public class SimpleCalendarContentProvider extends ContentProvider {
         int cols = showWeekNumber ? (maxDaysInWeek + 1) : maxDaysInWeek;
         CursorWindow window = new CursorWindow(WINDOW_NAME);
         window.setNumColumns(cols);
-        fillDaysOfWeek(mFirstDayOfWeek, window, showWeekNumber ? 1 : 0);
-        for (int row = window.getNumRows(); row < MAX_ROWS; row++) {
+        fillDaysOfWeek(firstDayOfWeek, window, showWeekNumber ? 1 : 0);
+        for (int row = 1; row < MAX_ROWS; row++) {
             window.allocRow();
             for (int col = 0; col < cols; col++) {
                 if (col == 0 && showWeekNumber) {
                     window.putLong(calendar.get(Calendar.WEEK_OF_YEAR), row, col);
                 } else {
                     Bundle bundle = new Bundle();
-                    bundle.putInt("year", calendar.get(Calendar.YEAR));
-                    bundle.putInt("month", calendar.get(Calendar.MONTH));
-                    bundle.putInt("day", calendar.get(Calendar.DATE));
+                    bundle.putInt(SimpleCalendarContract.Month.EXTRA_YEAR, calendar.get(Calendar.YEAR));
+                    bundle.putInt(SimpleCalendarContract.Month.EXTRA_MONTH, calendar.get(Calendar.MONTH));
+                    bundle.putInt(SimpleCalendarContract.Month.EXTRA_DAY, calendar.get(Calendar.DATE));
+                    int solarTerm = mSolarTermProvider.get(calendar);
+                    if (solarTerm >= 0) {
+                        Log.d(LOG_TAG, "match solar term " + solarTerm + " for date " + calendar.getTime());
+                        bundle.putInt(SimpleCalendarContract.Month.EXTRA_LUNAR_SOLAR_TERM, solarTerm);
+                    }
+                    LunarDate lunarDate = mLunarProvider.get(calendar);
+                    bundle.putInt(SimpleCalendarContract.Month.EXTRA_LUNAR_YEAR, lunarDate.getYear());
+                    bundle.putInt(SimpleCalendarContract.Month.EXTRA_LUNAR_MONTH, lunarDate.getMonth());
+                    bundle.putInt(SimpleCalendarContract.Month.EXTRA_LUNAR_DAY, lunarDate.getDay());
+                    bundle.putBoolean(SimpleCalendarContract.Month.EXTRA_LUNAR_IS_LEAP_MONTH, lunarDate.isLeapMonth());
                     Parcel parcel = Parcel.obtain();
                     bundle.writeToParcel(parcel, 0);
-                    window.putBlob(parcel.createByteArray(), row, col);
+                    Log.d(LOG_TAG, "Write parse to row " + row + " col " + col + " size " + parcel.dataSize());
+                    window.putBlob(parcel.marshall(), row, col);
                     calendar.add(Calendar.DATE, 1);
                 }
             }

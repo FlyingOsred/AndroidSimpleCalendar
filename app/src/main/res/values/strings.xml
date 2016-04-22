@@ -6,9 +6,19 @@
     <string name="app_name">SimpleCalendar</string>
     <string name="action_settings">Settings</string>
 
+    <string name="action_today">Today</string>
+
     <string name="key_pref_show_week_number">show_week_number</string>
     <string name="key_pref_first_day_of_week">first_day_of_week</string>
 
     <string name="week_number_text">WEEK</string>
+
+    <string name="month_day_today_text">TODAY</string>
+
+    <string name="month_select_dialog_title">Select month</string>
+    <string name="month_select_dialog_year">Year</string>
+    <string name="month_select_dialog_month">Month</string>
+    <string name="month_select_dialog_positive_button_text">Ok</string>
+    <string name="month_select_dialog_negative_button_text">Cancel</string>
 
 </resources>
